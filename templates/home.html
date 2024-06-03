@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %} Home {% endblock title %}
+{% block content %}
+    <div class="container mt-5">
+        <h1 class="mb-4">Home</h1>
+
+        {% if user.is_authenticated %}
+            <h2>Hi {{ user }}!</h2>
+            <div class="mb-3 mt-3">
+                <a href="{% url 'new_group' %}" class="btn btn-secondary">New group</a>
+            </div>
+
+            <div class="row">
+                {% for group in groups %}
+                    <div class="col-sm-4 mb-4">
+                        <div id="{{ group.uuid }}" class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ group.uuid }}</h5>
+                                {% if request.user in group.members.all %}
+                                    <a href="{% url 'open_chat' uuid=group.uuid %}" class="btn btn-primary me-2 mt-3">Open</a>
+                                    <a href="{% url 'leave_group' uuid=group.uuid %}" class="btn btn-warning me-2 mt-3">Leave</a>
+                                    <a href="{% url 'remove_group' uuid=group.uuid %}" class="btn btn-danger mt-3">Delete</a>
+                                {% else %}
+                                    <a href="{% url 'join_group' uuid=group.uuid %}" class="btn btn-primary mt-3">Join</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+					<a href="{% url 'logout' %}" class="btn btn-secondary me-2">Log out</a>
+        {% else %}
+            <h2>Hmm, who are you?</h2>
+            <a href="{% url 'login' %}" class="btn btn-secondary me-2">Log in</a>
+						<strong>&nbsp;or</strong>
+            <a href="{% url 'signup' %}" class="btn btn-info m-3">Sign up</a>
+        {% endif %}
+    </div>
+{% endblock content %}

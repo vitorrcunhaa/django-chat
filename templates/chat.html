@@ -1,0 +1,53 @@
+{% extends 'base.html' %} 
+{% block title %} Chat Room {% endblock title %}
+{% block content %}
+
+<div class="container mt-5">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Chat Room</h1>
+    <a href="{% url 'home' %}" class="btn btn-primary">Home</a>
+  </div>
+
+  <div id="chat-log" class="border rounded p-3 mb-3" style="width:100%; max-width: 600px; height: 400px; overflow-y: scroll; background-color: #f8f9fa;">
+    {% if messages %}
+      {% for message in messages %}
+      <p><strong>{{ message.author }}:</strong> {{ message.content }}</p>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <div class="input-group mb-3" style="width:100%; max-width: 600px;">
+    <input id="chat-message-input" type="text" class="form-control" placeholder="Type message" aria-label="Type message">
+    <button id="chat-message-submit" class="btn btn-primary" type="button">Send</button>
+  </div>
+</div>
+
+<script>
+  base_url =  'ws://' + window.location.hostname + ':' + window.location.port + '/ws/open_chat/' + "{{ uuid }}" + '/';
+  chatSocket = new WebSocket(base_url);
+
+  document.getElementById("chat-message-input").addEventListener("keyup", function(event) {
+    if (event.keyCode === 13) {
+      event.preventDefault();
+      document.getElementById("chat-message-submit").click();
+    }
+  });
+
+  chatSocket.onmessage = function(event) {
+    let parsed = JSON.parse(event.data);
+		let messageArray = parsed.message.split(':');
+    document.querySelector('#chat-log').innerHTML += '<p><strong>' + messageArray[0] + ':</strong> ' + messageArray[1] + '</p>';
+    document.querySelector('#chat-log').scrollTop = document.querySelector('#chat-log').scrollHeight;
+  }
+
+  document.querySelector('#chat-message-submit').onclick = function(e) {
+    const messageInputDom = document.querySelector('#chat-message-input');
+    const message = messageInputDom.value;
+    chatSocket.send(JSON.stringify({
+      'message': message
+    }));
+    messageInputDom.value = '';
+  };
+</script>
+
+{% endblock content %}
